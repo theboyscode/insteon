@@ -1,0 +1,33 @@
+Notes for this project.
+To get Xmimg to work.  With the expection to set the display number to 1:
+http://simonthepiman.com/2-10-how_to_view_my_pi_console_on_a_windows_PC.php
+
+To make it so if would run and restart automatically did the following:
+Did apt-get install daemontools-run daemontools
+Then made the following directory:
+/etc/service/insteon
+with the file name "run" with the following permissions:
+-rwxr-xr-x
+#!/bin/bash
+sudo -u pi python /home/pi/Insteon/insteon_scheduler_v01d01_28FEB2014.py
+
+
+to restart the daemontool thing do this
+sudo reboot
+--or--
+svc -h /service/yourdaemon: sends HUP
+svc -t /service/yourdaemon: sends TERM, and automatically restarts the daemon after it dies
+svc -d /service/yourdaemon: sends TERM, and leaves the service down
+svc -u /service/yourdaemon: brings the service back up
+svc -o /service/yourdaemon: runs the service once
+
+did these to use git
+http://git-scm.com/download/linux
+https://help.github.com/articles/create-a-repo
+
+sudo apt-get install python-dev
+sudo apt-get install python-pip
+
+
+
+
