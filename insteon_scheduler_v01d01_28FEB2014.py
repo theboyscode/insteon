@@ -18,7 +18,7 @@ def log_str(str_to_log):
     filename = strftime("/home/pi/Insteon/%d_%b_%Y.log", localtime())
     LOG_FILE = open(filename,'a')
     LOG_FILE.write(str(str_to_log)+"\n")
-    print str(str_to_log)
+    #print str(str_to_log)
     LOG_FILE.close()
     
 class Scheduler:
@@ -41,7 +41,7 @@ class Scheduler:
        
     #This is ran as specified in the main program, right now it is every 10 seconds
     def event_to_run(self):
-        log_str("in event to run. Ran last event is %r" %(self.ran_last_event))
+        ###log_str("in event to run. Ran last event is %r" %(self.ran_last_event))
 
         #check to see if we need to reset to a new week and start the sequence again.
         self.reset_to_new_week()
@@ -49,8 +49,8 @@ class Scheduler:
         #Here the next event is checked if it needs to be run.
         #We first check to see if we have run the last event
         if (self.ran_last_event ==  False):
-            log_str("next event week seconds: %i" %self.sched_events[self.next_event].event_week_secs)
-            log_str("curent time: %i" %self.cur_week_secs())
+            log_str("next: %i" %self.sched_events[self.next_event].event_week_secs)
+            log_str("time: %i" %self.cur_week_secs())
 
             #if we haven't run the last event we check to see if there are more events to run
             if (self.sched_events[self.next_event].event_week_secs < self.cur_week_secs()):
@@ -237,8 +237,9 @@ class Event():
 if __name__ == "__main__":
 
     c = SmartLincClient(HOST, PORT)
-    asyncore.loop(10) #this is where we set how often it loops the param is in seconds
+    print('Version 02MAR2014')
+    asyncore.loop(30) #this is where we set how often it loops the param is in seconds
 
-    asyncore.loop(timeout=10, count=1)
+    #asyncore.loop(timeout=10, count=1)
     print('Past the sleep')
   
