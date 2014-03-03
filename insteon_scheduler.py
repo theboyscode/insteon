@@ -3,6 +3,8 @@ import socket
 import binascii
 import time
 from time import localtime, strftime
+import datetime
+from astral import Astral
 import csv
 
 HOST = "192.168.1.90"
@@ -12,6 +14,9 @@ DEVICES = {'hall':'2558C5',
            'closet':'2558C5',
            'none':'1'}
 FILENAME = "/home/pi/Insteon/data.csv"
+### for the time values ###
+PRESSURE = 0
+CITY = 'San Francisco'
 
 def log_str(str_to_log):
     #open log file
@@ -71,6 +76,8 @@ class Scheduler:
         else:
             self.ran_last_event = False
         log_str("just got the next command the index is %i" %cur_index)
+
+        #When we run this need 
         return(self.sched_events[cur_index].command)
 
     #handles if we are in a new week
@@ -159,20 +166,33 @@ class SmartLincClient(asyncore.dispatcher):
             events.append(Event(row["device"],row["action"],row["time"],row["day of week"],row["protocol"],row["level"]))
 
 class Event():
-    def __init__(self, device, action,time, day_of_week, protocol,level):
+    def __init__(self, device, action,time, day_of_week, protocol,percent):
         self.device = device
         self.action  = action
         self.time = time
         self.day_of_week = day_of_week
-        self.level = hex(int(level)*255/100)
-        self.level = self.level[2:]
-        self.level = self.level.upper()
+        self.level = self.percent_to_level(percent)
         log_str('day of week = %s' % (self.day_of_week))
         self.protocol = protocol
         self.day_of_week_num = self.day_of_week2num(self.day_of_week)
         self.event_week_secs = self.event_time_to_week_secs(self.day_of_week_num,self.time)
         self.command = self.create_command()
         log_str("weekseconds event time is: %i" %self.event_week_secs)
+
+    def get_command(self):
+        a=0
+        #this is where we will include the time of dawn / dusk
+        #steps move all the things to generate a command from __init__ down to here
+            #this includes day of week num and event week secs and command
+        #instead of returning the command up higher need to call get command.
+        #when get__command is called need to check if it is dusk/dawn and then handle the time.
+            #that can probaly be put in time_to_week_secs
+
+    def percent_to_level(self,percent):
+        level = hex(int(percent)*255/100)
+        level = level[2:]
+        level = level.upper()
+        return level
         
     def create_command(self):
         if self.protocol == 'X10':
@@ -226,7 +246,16 @@ class Event():
         return(int(days*24*60*60+hours*60*60+minutes*60+seconds))
 
     def event_time_to_week_secs(self,days,time_str):
-        return self.time_to_week_secs(days,int(time_str[:-3]),int(time_str[-2:]),0)
+        time = 0
+        if (time_str == 'dawn'):
+            time = 1#do something
+            
+        elif (time_str == 'dusk'):
+            #do something else
+            time = 2
+        else:
+            time = self.time_to_week_secs(days,int(time_str[:-3]),int(time_str[-2:]),0)
+        return time
 
     def ascii2bin(self, command):
         bytes = command.replace(' ','')
@@ -237,7 +266,7 @@ class Event():
 if __name__ == "__main__":
 
     c = SmartLincClient(HOST, PORT)
-    print('Version 02MAR2014')
+    print('Version 02MAR2014 v00d01')
     asyncore.loop(30) #this is where we set how often it loops the param is in seconds
 
     #asyncore.loop(timeout=10, count=1)
