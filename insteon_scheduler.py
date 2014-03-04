@@ -2,21 +2,13 @@ import asyncore
 import socket
 import binascii
 import time
+import global_values
 from time import localtime, strftime
 import datetime
 from astral import Astral
 import csv
+from global_values import *
 
-HOST = "192.168.1.90"
-PORT = 9761
-DEVICES = {'hall':'2558C5',
-           'other':'1',
-           'closet':'2558C5',
-           'none':'1'}
-FILENAME = "/home/pi/Insteon/data.csv"
-### for the time values ###
-PRESSURE = 0
-CITY = 'San Francisco'
 
 def log_str(str_to_log):
     #open log file
