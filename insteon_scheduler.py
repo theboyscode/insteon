@@ -7,7 +7,7 @@ from time import localtime, strftime
 import datetime
 from astral import Astral
 import csv
-from global_values import *
+from values import *
 
 
 def log_str(str_to_log):
