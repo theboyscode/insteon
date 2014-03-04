@@ -7,6 +7,8 @@ from time import localtime, strftime
 import datetime
 from astral import Astral
 import csv
+#this is so I can post the values on git without having insteon address in it.
+#expecting values HOST, PORT, DEVICES, FILENAME, PRESSURE, CITY_NAME
 from values import *
 
 
@@ -29,12 +31,16 @@ class Scheduler:
         #this is true if we have ran the last event and there is nothing more to run this week
         self.ran_last_event = False
 
+        #setup all the times for the dawn and dusk, this will be recalled once we reset for the next week
+        #must be called before we determine initial events or inital events won't know when to schedule the
+        #dusk and dawn events
+        self.schedule_events()
+
         #depending on what time the program is initially run we pick which event will go next
         self.next_event = self.determine_inital_event()
 
         #this is related to last event, it helps track when we start a new week
         self.last_time_ran = self.cur_week_secs()
-
        
     #This is ran as specified in the main program, right now it is every 10 seconds
     def event_to_run(self):
@@ -70,7 +76,7 @@ class Scheduler:
         log_str("just got the next command the index is %i" %cur_index)
 
         #When we run this need 
-        return(self.sched_events[cur_index].command)
+        return(self.sched_events[cur_index].get_command())
 
     #handles if we are in a new week
     def reset_to_new_week(self):
@@ -78,6 +84,14 @@ class Scheduler:
             self.ran_last_event = False
 
         self.last_time_ran = self.cur_week_secs()
+
+
+   #we need to setup the times for all the events for the week.
+    def schedule_events(self):
+        log_str("scheduling events")
+
+        for i in range(0,self.num_events):
+            self.sched_events[i].set_command_time()
 
 
     #once the scheduler is started we need to check what the first event is to run
@@ -164,22 +178,33 @@ class Event():
         self.time = time
         self.day_of_week = day_of_week
         self.level = self.percent_to_level(percent)
+        self.day_of_week_num = self.day_of_week2num(self.day_of_week)
         log_str('day of week = %s' % (self.day_of_week))
         self.protocol = protocol
-        self.day_of_week_num = self.day_of_week2num(self.day_of_week)
-        self.event_week_secs = self.event_time_to_week_secs(self.day_of_week_num,self.time)
-        self.command = self.create_command()
-        log_str("weekseconds event time is: %i" %self.event_week_secs)
+
+        #setup the astral city, uses the city name fro values.py
+        a = Astral()
+        a.solar_depression = 'civil'
+        self.city = a[CITY_NAME]
 
     def get_command(self):
-        a=0
-        #this is where we will include the time of dawn / dusk
-        #steps move all the things to generate a command from __init__ down to here
-            #this includes day of week num and event week secs and command
-        #instead of returning the command up higher need to call get command.
-        #when get__command is called need to check if it is dusk/dawn and then handle the time.
-            #that can probaly be put in time_to_week_secs
+        return self.create_command()
 
+    def set_command_time(self):
+        sun = self.city.sun()
+        if ((self.time == 'dawn') or (self.time == 'dusk')):
+            time = str('%i:%i' % (sun[self.time].hour , sun[self.time].minute))
+            log_str(type(time))
+            log_str('%s is %s' % (self.time, time))
+        else:
+            time = self.time
+        self.event_week_secs = self.event_time_to_week_secs(self.day_of_week_num,time)
+        
+    def get_sun_event_time(self,action):
+        sun = self.city.sun()
+        sun_event_time = self.city
+        return
+        
     def percent_to_level(self,percent):
         level = hex(int(percent)*255/100)
         level = level[2:]
@@ -238,15 +263,7 @@ class Event():
         return(int(days*24*60*60+hours*60*60+minutes*60+seconds))
 
     def event_time_to_week_secs(self,days,time_str):
-        time = 0
-        if (time_str == 'dawn'):
-            time = 1#do something
-            
-        elif (time_str == 'dusk'):
-            #do something else
-            time = 2
-        else:
-            time = self.time_to_week_secs(days,int(time_str[:-3]),int(time_str[-2:]),0)
+        time = self.time_to_week_secs(days,int(time_str[:-3]),int(time_str[-2:]),0)
         return time
 
     def ascii2bin(self, command):
@@ -260,7 +277,5 @@ if __name__ == "__main__":
     c = SmartLincClient(HOST, PORT)
     print('Version 02MAR2014 v00d01')
     asyncore.loop(30) #this is where we set how often it loops the param is in seconds
-
-    #asyncore.loop(timeout=10, count=1)
     print('Past the sleep')
   
