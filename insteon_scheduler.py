@@ -4,6 +4,7 @@ import binascii
 import time
 import global_values
 from time import localtime, strftime
+from operator import itemgetter
 import datetime
 from astral import Astral
 import csv
@@ -22,26 +23,38 @@ def log_str(str_to_log):
     
 class Scheduler:
     def __init__(self,events):
-        #contains all the imported events to be run
-        self.sched_events = events
-        self.num_events = len(self.sched_events)
-
         #denotes whether we have run the last event for that week
         #if we have run the last event we won't run any more
         #this is true if we have ran the last event and there is nothing more to run this week
         self.ran_last_event = False
 
-        #setup all the times for the dawn and dusk, this will be recalled once we reset for the next week
-        #must be called before we determine initial events or inital events won't know when to schedule the
-        #dusk and dawn events
-        self.schedule_events()
+        #here we make the event list, also runs the calcs to determine times for dawn/dusk
+        #contains all the imported events to be run
+        self.event_list = []
+        self.num_events = 0
+        self.sched_events = self.make_event_list(events)
+
+        #now we sort the events
+        self.sort_event_list()
 
         #depending on what time the program is initially run we pick which event will go next
         self.next_event = self.determine_inital_event()
 
         #this is related to last event, it helps track when we start a new week
         self.last_time_ran = self.cur_week_secs()
-       
+
+    def make_event_list(self,events):
+        print 'making the command list'
+        self.num_events = len(events)
+        
+        for i in range(0,self.num_events):
+            self.event_list.append((i,(events[i].get_command_time())))
+            print self.event_list[i]
+
+    def sort_event_list(self):
+        self.event_list = sorted(self.event_list, key=itemgetter(1))
+        print self.event_list
+
     #This is ran as specified in the main program, right now it is every 10 seconds
     def event_to_run(self):
         ###log_str("in event to run. Ran last event is %r" %(self.ran_last_event))
@@ -84,15 +97,6 @@ class Scheduler:
             self.ran_last_event = False
 
         self.last_time_ran = self.cur_week_secs()
-
-
-   #we need to setup the times for all the events for the week.
-    def schedule_events(self):
-        log_str("scheduling events")
-
-        for i in range(0,self.num_events):
-            self.sched_events[i].set_command_time()
-
 
     #once the scheduler is started we need to check what the first event is to run
     def determine_inital_event(self):
@@ -190,15 +194,16 @@ class Event():
     def get_command(self):
         return self.create_command()
 
-    def set_command_time(self):
+    def get_command_time(self):
         sun = self.city.sun()
         if ((self.time == 'dawn') or (self.time == 'dusk')):
+            #on below line need to account for the day offset
             time = str('%i:%i' % (sun[self.time].hour , sun[self.time].minute))
             log_str(type(time))
             log_str('%s is %s' % (self.time, time))
         else:
             time = self.time
-        self.event_week_secs = self.event_time_to_week_secs(self.day_of_week_num,time)
+        return self.event_time_to_week_secs(self.day_of_week_num,time)
         
     def get_sun_event_time(self,action):
         sun = self.city.sun()
