@@ -103,7 +103,9 @@ class Scheduler:
         log_str("in determin_inital_event")
         i = 0
         log_str(self.num_events)
-        while (self.sched_events[i].event_week_secs < self.cur_week_secs()):
+        #just need the times here so make a list, must be a better way to do it
+        times = [x[1] for x in self.event_list]
+        while (times[i] < self.cur_week_secs()):
             i = i + 1
             if (i >= self.num_events):
                 log_str('i is: %i' %i)
