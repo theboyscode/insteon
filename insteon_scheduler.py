@@ -38,7 +38,7 @@ class Scheduler:
         self.sort_event_list()
 
         #depending on what time the program is initially run we pick which event will go next
-        self.next_event = self.determine_inital_event()
+        self.next_event_index = self.determine_inital_event_index()
 
         #this is related to last event, it helps track when we start a new week
         self.last_time_ran = self.cur_week_secs()
@@ -48,7 +48,7 @@ class Scheduler:
         self.num_events = len(events)
         
         for i in range(0,self.num_events):
-            self.event_list.append((i,(events[i].get_command_time())))
+            self.event_list.append((i,events[i].get_command_time(),events[i].get_command()))
             print self.event_list[i]
 
     def sort_event_list(self):
@@ -62,15 +62,18 @@ class Scheduler:
         #check to see if we need to reset to a new week and start the sequence again.
         self.reset_to_new_week()
 
+        #break apart the parts list
+        [next_num,next_time,next_command] = self.event_list[self.next_event_index]
+
         #Here the next event is checked if it needs to be run.
         #We first check to see if we have run the last event
         if (self.ran_last_event ==  False):
-            log_str("next: %i" %self.sched_events[self.next_event].event_week_secs)
+            log_str("next: %i" %next_time)
             log_str("time: %i" %self.cur_week_secs())
 
             #if we haven't run the last event we check to see if there are more events to run
-            if (self.sched_events[self.next_event].event_week_secs < self.cur_week_secs()):
-                log_str("This is the comparison %r" %(self.sched_events[self.next_event].event_week_secs < self.cur_week_secs()))
+            if (next_time < self.cur_week_secs()):
+                log_str("This is the comparison %r" %(next_time < self.cur_week_secs()))
                 log_str("There is a command to run")
                 #if there is any event to run we return true and then get_next_event_command is run
                 return True
@@ -78,18 +81,21 @@ class Scheduler:
 
     #handles proviging the next event and checking if we have run the last
     def get_next_event_command(self):
-        cur_index = self.next_event
-        self.next_event = self.next_event + 1
-        if (self.next_event == self.num_events):
+        
+        cur_index = self.next_event_index
+        self.next_event_index = self.next_event_index + 1
+        if (self.next_event_index == self.num_events):
             log_str("Ran last event of the week reseting to 0")
-            self.next_event = 0
+            self.next_event_index = 0
             self.ran_last_event = True
         else:
             self.ran_last_event = False
         log_str("just got the next command the index is %i" %cur_index)
 
-        #When we run this need 
-        return(self.sched_events[cur_index].get_command())
+        #When we run this need
+        #break apart the parts list
+        [next_num,next_time,next_command] = self.event_list[cur_index]
+        return(next_command)
 
     #handles if we are in a new week
     def reset_to_new_week(self):
@@ -99,7 +105,7 @@ class Scheduler:
         self.last_time_ran = self.cur_week_secs()
 
     #once the scheduler is started we need to check what the first event is to run
-    def determine_inital_event(self):
+    def determine_inital_event_index(self):
         log_str("in determin_inital_event")
         i = 0
         log_str(self.num_events)
