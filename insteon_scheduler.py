@@ -23,63 +23,67 @@ def log_str(str_to_log):
     
 class Scheduler:
     def __init__(self,events):
-        #denotes whether we have run the last event for that week
-        #if we have run the last event we won't run any more
-        #this is true if we have ran the last event and there is nothing more to run this week
+        #denotes whether I have run the last event for that week
+        #if I have run the last event I won't run any more
+        #this is true if I have ran the last event and there is nothing more to run this week
         self.ran_last_event = False
 
-        #here we make the event list, also runs the calcs to determine times for dawn/dusk
+        #number of events I have
+        #I have to save the events because it is used to generate a new list every week
+        self.events = events
+        self.num_events = len(self.events)
+                
+        #here I make the event list, also runs the calcs to determine times for dawn/dusk
         #contains all the imported events to be run
         self.event_list = []
-        self.num_events = 0
-        self.sched_events = self.make_event_list(events)
+        self.make_event_list()
 
-        #now we sort the events
+        #now I sort the events
         self.sort_event_list()
 
-        #depending on what time the program is initially run we pick which event will go next
+        #depending on what time the program is initially run I pick which event will go next
         self.next_event_index = self.determine_inital_event_index()
 
-        #this is related to last event, it helps track when we start a new week
+        #this is related to last event, it helps track when I start a new week
         self.last_time_ran = self.cur_week_secs()
 
-    def make_event_list(self,events):
-        print 'making the command list'
-        self.num_events = len(events)
-        
+    #takes the events and saves a list of tuples which can be easily sorted
+    #the list contains [entry id (1 through x),time to run, command]
+    #the entry really isn't used and I could get rid of it
+    def make_event_list(self):
+        log_str('number of event is: %i' %self.num_events)       
         for i in range(0,self.num_events):
-            self.event_list.append((i,events[i].get_command_time(),events[i].get_command()))
-            print self.event_list[i]
-
+            self.event_list.append((i,self.events[i].get_command_time(),self.events[i].get_command()))
+            
+    #sorts the list of times and commands
     def sort_event_list(self):
         self.event_list = sorted(self.event_list, key=itemgetter(1))
         print self.event_list
 
     #This is ran as specified in the main program, right now it is every 10 seconds
     def event_to_run(self):
-        ###log_str("in event to run. Ran last event is %r" %(self.ran_last_event))
-
-        #check to see if we need to reset to a new week and start the sequence again.
+        
+        #check to see if I need to reset to a new week and start the sequence again.
         self.reset_to_new_week()
 
         #break apart the parts list
         [next_num,next_time,next_command] = self.event_list[self.next_event_index]
 
         #Here the next event is checked if it needs to be run.
-        #We first check to see if we have run the last event
+        #I first check to see if I have run the last event
         if (self.ran_last_event ==  False):
             log_str("next: %i" %next_time)
             log_str("time: %i" %self.cur_week_secs())
 
-            #if we haven't run the last event we check to see if there are more events to run
+            #if I haven't run the last event I check to see if there are more events to run
             if (next_time < self.cur_week_secs()):
                 log_str("This is the comparison %r" %(next_time < self.cur_week_secs()))
                 log_str("There is a command to run")
-                #if there is any event to run we return true and then get_next_event_command is run
+                #if there is any event to run I return true and then get_next_event_command is run
                 return True
         return False
 
-    #handles proviging the next event and checking if we have run the last
+    #handles proviging the next event and checking if I have run the last
     def get_next_event_command(self):
         
         cur_index = self.next_event_index
@@ -92,19 +96,23 @@ class Scheduler:
             self.ran_last_event = False
         log_str("just got the next command the index is %i" %cur_index)
 
-        #When we run this need
+        #When I run this need
         #break apart the parts list
         [next_num,next_time,next_command] = self.event_list[cur_index]
         return(next_command)
 
-    #handles if we are in a new week
+    #handles if I am in a new week
     def reset_to_new_week(self):
         if (self.cur_week_secs() < self.last_time_ran):
             self.ran_last_event = False
 
+            #since the times for dawn and dusk change I have to reset the command times
+            self.make_event_list()
+            self.sort_event_list()
+
         self.last_time_ran = self.cur_week_secs()
 
-    #once the scheduler is started we need to check what the first event is to run
+    #once the scheduler is started I need to check what the first event is to run
     def determine_inital_event_index(self):
         log_str("in determin_inital_event")
         i = 0
@@ -146,7 +154,7 @@ class SmartLincClient(asyncore.dispatcher):
         #used to read in the events,this is temp and will need to change
         self.load_events(events)
 
-        #now we start scheduling the events
+        #now I start scheduling the events
         self.sched = Scheduler(events)
 
         #upon initial running
@@ -203,11 +211,11 @@ class Event():
         return self.create_command()
 
     def get_command_time(self):
-        sun = self.city.sun()
+        now = localtime()
+        sun = self.city.sun(date=datetime.date(now.tm_year,now.tm_mon,now.tm_mday+self.day_of_week_num),local=True)
         if ((self.time == 'dawn') or (self.time == 'dusk')):
             #on below line need to account for the day offset
             time = str('%i:%i' % (sun[self.time].hour , sun[self.time].minute))
-            log_str(type(time))
             log_str('%s is %s' % (self.time, time))
         else:
             time = self.time
@@ -281,14 +289,13 @@ class Event():
 
     def ascii2bin(self, command):
         bytes = command.replace(' ','')
-        log_str("Creating command in ascii2bin: %s" % bytes)
         binary = binascii.unhexlify(bytes)
         return(binary)
 
 if __name__ == "__main__":
 
     c = SmartLincClient(HOST, PORT)
-    print('Version 02MAR2014 v00d01')
-    asyncore.loop(30) #this is where we set how often it loops the param is in seconds
+    print('Version 05MAR2014 v00d01')
+    asyncore.loop(30) #this is where I set how often it loops the param is in seconds
     print('Past the sleep')
   
