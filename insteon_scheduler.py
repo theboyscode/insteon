@@ -295,7 +295,7 @@ class Event():
 if __name__ == "__main__":
 
     c = SmartLincClient(HOST, PORT)
-    print('Version 05MAR2014 v00d01')
+    print('Version 05MAR2014 v01d00')
     asyncore.loop(30) #this is where I set how often it loops the param is in seconds
     print('Past the sleep')
   
