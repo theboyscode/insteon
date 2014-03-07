@@ -12,6 +12,10 @@ import csv
 #expecting values HOST, PORT, DEVICES, FILENAME, PRESSURE, CITY_NAME
 from values import *
 
+#setup the astral city, uses the city name fro values.py
+a = Astral()
+a.solar_depression = 'civil'
+CITY = a[CITY_NAME]
 
 def log_str(str_to_log):
     #open log file
@@ -174,6 +178,11 @@ class SmartLincClient(asyncore.dispatcher):
         log_str("Received: %s" % binascii.hexlify(received).upper())
 
     def writable(self):
+        
+        #check to see if the data file is updated and if so reload everything
+        #if (self.data_file_updated()):
+        #    sel    
+        
         if self.sched.event_to_run():
             self.buffer = self.sched.get_next_event_command()
         return (len(self.buffer) > 0)
@@ -187,10 +196,13 @@ class SmartLincClient(asyncore.dispatcher):
     def load_events(self,events):
         #device,action,time,day of week,protocol,level
         #example: Hall,On,18:00,Mon,X10
-        input_file = csv.DictReader(open(FILENAME))
+        #also filters all the lines that start with #
+        fp  = file(FILENAME)
+        input_file = csv.DictReader(filter(lambda row: row[0]!='#',fp))
         for row in input_file:
             events.append(Event(row["device"],row["action"],row["time"],row["day of week"],row["protocol"],row["level"]))
-
+        fp.close()
+        
 class Event():
     def __init__(self, device, action,time, day_of_week, protocol,percent):
         self.device = device
@@ -202,17 +214,14 @@ class Event():
         log_str('day of week = %s' % (self.day_of_week))
         self.protocol = protocol
 
-        #setup the astral city, uses the city name fro values.py
-        a = Astral()
-        a.solar_depression = 'civil'
-        self.city = a[CITY_NAME]
+
 
     def get_command(self):
         return self.create_command()
 
     def get_command_time(self):
         now = localtime()
-        sun = self.city.sun(date=datetime.date(now.tm_year,now.tm_mon,now.tm_mday+self.day_of_week_num),local=True)
+        sun = CITY.sun(date=datetime.date(now.tm_year,now.tm_mon,now.tm_mday+self.day_of_week_num),local=True)
         if ((self.time == 'dawn') or (self.time == 'dusk')):
             #on below line need to account for the day offset
             time = str('%i:%i' % (sun[self.time].hour , sun[self.time].minute))
@@ -220,11 +229,6 @@ class Event():
         else:
             time = self.time
         return self.event_time_to_week_secs(self.day_of_week_num,time)
-        
-    def get_sun_event_time(self,action):
-        sun = self.city.sun()
-        sun_event_time = self.city
-        return
         
     def percent_to_level(self,percent):
         level = hex(int(percent)*255/100)
