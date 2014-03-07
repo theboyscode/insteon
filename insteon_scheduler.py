@@ -3,6 +3,7 @@ import socket
 import binascii
 import time
 import global_values
+import os
 from time import localtime, strftime
 from operator import itemgetter
 import datetime
@@ -153,13 +154,16 @@ class SmartLincClient(asyncore.dispatcher):
 
     def __init__(self, host, port):
         #Create a list of events
-        events = []
+        self.events = []
+
+        #timestamp when file is loaded.
+        self.data_file_timestamp = os.stat(FILENAME).st_mtime
         
         #used to read in the events,this is temp and will need to change
-        self.load_events(events)
+        self.load_events()
 
         #now I start scheduling the events
-        self.sched = Scheduler(events)
+        self.sched = Scheduler(self.events)
 
         #upon initial running
         asyncore.dispatcher.__init__(self)
@@ -180,27 +184,40 @@ class SmartLincClient(asyncore.dispatcher):
     def writable(self):
         
         #check to see if the data file is updated and if so reload everything
-        #if (self.data_file_updated()):
-        #    sel    
+        if (self.data_file_updated()):
+            self.reload_data_file()    
         
         if self.sched.event_to_run():
             self.buffer = self.sched.get_next_event_command()
         return (len(self.buffer) > 0)
 
+    def data_file_updated(self):
+        return (self.data_file_timestamp < os.stat(FILENAME).st_mtime)
+
+    def reload_data_file(self):
+        #timestamp when file is loaded.
+        self.data_file_timestamp = os.stat(FILENAME).st_mtime
+        #used to read in the events,this is temp and will need to change
+        self.load_events()
+        #now I start scheduling the events
+        self.sched = Scheduler(self.events)
+        
     def handle_write(self):
         sent = self.send(self.buffer)
         log_str("Sent: %s" %self.buffer)
         self.buffer = self.buffer[sent:]
         self.have_data = 0
 
-    def load_events(self,events):
+    def load_events(self):
         #device,action,time,day of week,protocol,level
         #example: Hall,On,18:00,Mon,X10
         #also filters all the lines that start with #
+        #make sure events is empty
+        self.events = []
         fp  = file(FILENAME)
         input_file = csv.DictReader(filter(lambda row: row[0]!='#',fp))
         for row in input_file:
-            events.append(Event(row["device"],row["action"],row["time"],row["day of week"],row["protocol"],row["level"]))
+            self.events.append(Event(row["device"],row["action"],row["time"],row["day of week"],row["protocol"],row["level"]))
         fp.close()
         
 class Event():
