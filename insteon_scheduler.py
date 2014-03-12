@@ -165,6 +165,9 @@ class SmartLincClient(asyncore.dispatcher):
         #now I start scheduling the events
         self.sched = Scheduler(self.events)
 
+        #this seems shady
+        self.handler = Handler(self.sched)
+
         #upon initial running
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -180,6 +183,8 @@ class SmartLincClient(asyncore.dispatcher):
     def handle_read(self):
         received = self.recv(1024)
         log_str("Received: %s" % binascii.hexlify(received).upper())
+        #now I make a handler to handle the incoming messages
+        self.handler.parse_mesg(binascii.hexlify(received).upper())
 
     def writable(self):
         
@@ -201,6 +206,8 @@ class SmartLincClient(asyncore.dispatcher):
         self.load_events()
         #now I start scheduling the events
         self.sched = Scheduler(self.events)
+
+
         
     def handle_write(self):
         sent = self.send(self.buffer)
@@ -219,7 +226,22 @@ class SmartLincClient(asyncore.dispatcher):
         for row in input_file:
             self.events.append(Event(row["device"],row["action"],row["time"],row["day of week"],row["protocol"],row["level"]))
         fp.close()
-        
+
+#knows how to handle a received command
+class Handler():
+    def __init__(self,scheduler):
+        self.scheduler = scheduler
+        log_str("Made a handler")
+        #self.scheduler.events.append(Event('other','on','12:00','Mon','X10','0'))
+        #self.scheduler.make_event_list()
+        #self.scheduler.sort_event_list()
+
+    def parse_mesg(self,mesg):
+        log_str("parsing %s" % mesg)
+        #02502771F8000001CF1101
+
+
+
 class Event():
     def __init__(self, device, action,time, day_of_week, protocol,percent):
         self.device = device
