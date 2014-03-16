@@ -26,7 +26,6 @@ class Scheduler:
         #number of events I have
         #I have to save the events because it is used to generate a new list every week
         self.events = events
-        self.num_events = len(self.events)
                 
         #here I make the event list, also runs the calcs to determine times for dawn/dusk
         #contains all the imported events to be run
@@ -46,14 +45,14 @@ class Scheduler:
     #the list contains [entry id (1 through x),time to run, command]
     #the entry really isn't used and I could get rid of it
     def make_event_list(self):
-        log_str('number of event is: %i' %self.num_events)       
-        for i in range(0,self.num_events):
+        log_str('number of event is: %i' %len(self.events))       
+        for i in range(0,len(self.events)):
             self.event_list.append((i,self.events[i].get_command_time(),self.events[i].get_command()))
             
     #sorts the list of times and commands
     def sort_event_list(self):
         self.event_list = sorted(self.event_list, key=itemgetter(1))
-        print self.event_list
+        #print self.event_list
 
     #This is ran as specified in the main program, right now it is every 10 seconds
     def event_to_run(self):
@@ -61,17 +60,14 @@ class Scheduler:
         #check to see if I need to reset to a new week and start the sequence again.
         self.reset_to_new_week()
 
-        #break apart the parts list
-        log_str('next event index: %i' %self.next_event_index)
-        log_str('length of event list: %i' %len(self.event_list))
-        
-
         #Here the next event is checked if it needs to be run.
         #I first check to see if I have run the last event
         if (self.ran_last_event ==  False):
+            #break apart the parts list
+            #this used to be outside the if -- MAKE SURE IT WORKS
             [next_num,next_time,next_command] = self.event_list[self.next_event_index]
             log_str("next: %i" %next_time)
-            log_str("time: %i" %self.cur_week_secs())
+            log_str("time: %i" %self.cur_week_secs())   
 
             #if I haven't run the last event I check to see if there are more events to run
             if (next_time < self.cur_week_secs()):
@@ -79,6 +75,7 @@ class Scheduler:
                 log_str("There is a command to run")
                 #if there is any event to run I return true and then get_next_event_command is run
                 return True
+        
         return False
 
     #handles proviging the next event and checking if I have run the last
@@ -86,7 +83,7 @@ class Scheduler:
         
         cur_index = self.next_event_index
         self.next_event_index = self.next_event_index + 1
-        if (self.next_event_index == self.num_events):
+        if (self.next_event_index == len(self.events)):
             log_str("Ran last event of the week reseting to 0")
             self.next_event_index = 0
             self.ran_last_event = True
@@ -114,12 +111,12 @@ class Scheduler:
     def determine_inital_event_index(self):
         log_str("in determin_inital_event")
         i = 0
-        log_str(self.num_events)
+        log_str(len(self.events))
         #just need the times here so make a list, must be a better way to do it
         times = [x[1] for x in self.event_list]
         while (times[i] < self.cur_week_secs()):
             i = i + 1
-            if (i >= self.num_events):
+            if (i >= len(self.events)):
                 log_str('i is: %i' %i)
                 log_str('No events to schedule')
                 self.ran_last_event = True
@@ -159,7 +156,7 @@ class SmartLincClient(asyncore.dispatcher):
         self.sched = Scheduler(self.events)
 
         #this seems shady
-        self.handler = Handler(self.sched)
+        self.event_handler = EventHandler(self.sched)
 
         #upon initial running
         asyncore.dispatcher.__init__(self)
@@ -177,7 +174,7 @@ class SmartLincClient(asyncore.dispatcher):
         received = self.recv(1024)
         log_str("Received: %s" % binascii.hexlify(received).upper())
         #now I make a handler to handle the incoming messages
-        self.handler.parse_mesg(binascii.hexlify(received).upper())
+        self.event_handler.parse_mesg(binascii.hexlify(received).upper())
 
     def writable(self):
         
@@ -200,10 +197,9 @@ class SmartLincClient(asyncore.dispatcher):
         #now I start scheduling the events
         self.sched = Scheduler(self.events)
 
-
-        
     def handle_write(self):
         sent = self.send(self.buffer)
+        #need to put in some stuff here to break up the x10 commands and send them as two
         log_str("Sent: %s" %self.buffer)
         self.buffer = self.buffer[sent:]
         self.have_data = 0
@@ -221,13 +217,14 @@ class SmartLincClient(asyncore.dispatcher):
         fp.close()
 
 #knows how to handle a received command
-class Handler():
+class EventHandler():
     def __init__(self,scheduler):
         self.scheduler = scheduler
         log_str("Made a handler")
-        #self.scheduler.events.append(Event('other','on','12:00','Mon','X10','0'))
-        #self.scheduler.make_event_list()
-        #self.scheduler.sort_event_list()
+        self.scheduler.events.append(Event('X10other','Off','12:00','Mon','X10','00'))
+        self.scheduler.make_event_list()
+        self.scheduler.sort_event_list()
+        log_str("number of events %i" % len(self.scheduler.events))
 
     def parse_mesg(self,mesg):
         log_str("parsing %s" % mesg)

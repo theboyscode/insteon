@@ -1,5 +1,7 @@
+#this is a comment
+#and this is a comment
 device,action,time,day of week,protocol,level
-closet,Ramp,6:14,Mon,Insteon,10
+closet,Ramp,6:14,Mon,Insteon,15
 closet,Ramp,6:15,Mon,Insteon,30
 closet,Ramp,6:16,Mon,Insteon,50
 closet,Ramp,6:17,Mon,Insteon,70
@@ -35,4 +37,4 @@ closet,Ramp,7:16,Sat,Insteon,50
 closet,Ramp,7:17,Sat,Insteon,70
 closet,Ramp,7:18,Sat,Insteon,90
 closet,Ramp,7:19,Sat,Insteon,100
-closet,Off,8:46,Sat,Insteon,0
+X10other,Off,22:21,Sat,X10,0

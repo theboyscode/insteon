@@ -20,7 +20,7 @@ class Event():
         self.day_of_week_num = self.day_of_week2num(self.day_of_week)
         log_str('day of week = %s' % (self.day_of_week))
         self.protocol = protocol
-
+        log_str('self.protocol = %s' % self.protocol)
 
 
     def get_command(self):
@@ -67,6 +67,7 @@ class Event():
             log_str("didn't get a correction action")
             
         log_str("Created Command: %s" % command)
+        
         command = self.ascii2bin(command)
         return command
 
@@ -76,9 +77,10 @@ class Event():
                    'Off':'380',
                    'none':' '}
         house = '6' #"A" house code
-        command  = '02 63 %s %s %s' % (house, DEVICES[self.device],  options[self.action])
-        log_str("Created Command: %s" % command)
-        command = self.ascii2bin(command)
+        command  = '02 63 %s %s' % (house, DEVICES[self.device])
+        command1 = '02 63 %s %s' % (house, options[self.action])
+        log_str("Created X10 Command: %s" % command + 'P3' + command1)
+        command = self.ascii2bin(command + command1)
         return command
 
     def day_of_week2num(self,day_of_week):
