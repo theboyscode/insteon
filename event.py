@@ -79,7 +79,7 @@ class Event():
         house = '6' #"A" house code
         command  = '02 63 %s %s' % (house, DEVICES[self.device])
         command1 = '02 63 %s %s' % (house, options[self.action])
-        log_str("Created X10 Command: %s" % command + 'P3' + command1)
+        log_str("Created X10 Command: %s" % command + command1)
         command = self.ascii2bin(command + command1)
         return command
 

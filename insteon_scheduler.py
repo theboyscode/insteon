@@ -1,6 +1,7 @@
 import asyncore
 import socket
 import binascii
+import time
 
 import os
 
@@ -198,12 +199,21 @@ class SmartLincClient(asyncore.dispatcher):
         self.sched = Scheduler(self.events)
 
     def handle_write(self):
-        sent = self.send(self.buffer)
-        #need to put in some stuff here to break up the x10 commands and send them as two
+        #convert things back to hex to make it easier to work with
+        hexbuffer = binascii.hexlify(self.buffer)
+
+        #this splits up the x10 stupid command and makes
+        #it so the handle_write sends the first half, pauses
+        #and then sends the second half and implements the pause.
+        if (( hexbuffer.find("0263") == 0 ) & (len(hexbuffer) == 16)):
+            sent = self.send(binascii.unhexlify(hexbuffer[:8]))
+            time.sleep(3) #this pause is needed in between the commands
+        else:
+            sent = self.send(self.buffer)
+                
         log_str("Sent: %s" %self.buffer)
         self.buffer = self.buffer[sent:]
-        self.have_data = 0
-
+   
     def load_events(self):
         #device,action,time,day of week,protocol,level
         #example: Hall,On,18:00,Mon,X10
@@ -221,12 +231,12 @@ class EventHandler():
     def __init__(self,scheduler):
         self.scheduler = scheduler
         log_str("Made a handler")
-        self.scheduler.events.append(Event('X10other','Off','12:00','Mon','X10','00'))
-        self.scheduler.make_event_list()
-        self.scheduler.sort_event_list()
         log_str("number of events %i" % len(self.scheduler.events))
 
     def parse_mesg(self,mesg):
+        #self.scheduler.events.append(Event('X10other','Off','12:00','Mon','X10','00'))
+        #self.scheduler.make_event_list()
+        #self.scheduler.sort_event_list()
         log_str("parsing %s" % mesg)
         #02502771F8000001CF1101
 
