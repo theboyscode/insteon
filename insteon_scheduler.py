@@ -237,8 +237,12 @@ class EventHandler():
         #self.scheduler.events.append(Event('X10other','Off','12:00','Mon','X10','00'))
         #self.scheduler.make_event_list()
         #self.scheduler.sort_event_list()
+        #action => motion = 11. no motion = 13
         log_str("parsing %s" % mesg)
-        #02502771F8000001CF1101
+        event_prefix = mesg[:4]
+        event_device = DEVICES[mesg[4:10]]
+        event_destination = DEVICES[mesg[10:16]]
+        event_action = mesg[18:20]
 
 if __name__ == "__main__":
 
