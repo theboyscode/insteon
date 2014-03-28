@@ -28,7 +28,7 @@ class Event():
 
     def get_command_time(self):
         now = localtime()
-        sun = CITY.sun(date=datetime.date(now.tm_year,now.tm_mon,now.tm_mday+self.day_of_week_num),local=True)
+        sun = CITY.sun(date=datetime.date.today() + datetime.timedelta(days=self.day_of_week_num), local=True)
         if ((self.time == 'dawn') or (self.time == 'dusk')):
             #on below line need to account for the day offset
             time = str('%i:%i' % (sun[self.time].hour , sun[self.time].minute))
