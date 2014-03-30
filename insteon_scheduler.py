@@ -33,7 +33,7 @@ class Scheduler:
         self.event_list = []
         self.make_event_list()
 
-        #now I sort the events
+        #now I sort the events 
         self.sort_event_list()
 
         #depending on what time the program is initially run I pick which event will go next
@@ -178,10 +178,17 @@ class SmartLincClient(asyncore.dispatcher):
         log_str("Received: %s" % binascii.hexlify(received).upper())
         #now I make a handler to handle the incoming messages
         self.buffer = self.event_handler.parse_mesg(binascii.hexlify(received).upper())
-        if self.writable():
+        if (len(self.buffer) > 0):
             self.handle_write()
+            #this maybe shouldn't be here
+            self.sched.make_event_list()
+            self.sched.sort_event_list()
+            self.sched.next_event_index = self.sched.determine_inital_event_index()
+
 
     def writable(self):
+
+
         #this clears out any temp things we have setup to to events
         #doesn't work well if any temp events aren't carried out prior to new week.
         if (self.sched.reset_to_new_week()):
