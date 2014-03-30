@@ -2,9 +2,9 @@ import asyncore
 import socket
 import binascii
 import time
-import threding
+import datetime
 import os
-
+from time import localtime, strftime
 from operator import itemgetter
 
 
@@ -59,7 +59,7 @@ class Scheduler:
     def event_to_run(self):
         
         #check to see if I need to reset to a new week and start the sequence again.
-        self.reset_to_new_week()
+        #self.reset_to_new_week()
 
         #Here the next event is checked if it needs to be run.
         #I first check to see if I have run the last event
@@ -103,10 +103,12 @@ class Scheduler:
             self.ran_last_event = False
 
             #since the times for dawn and dusk change I have to reset the command times
-            self.make_event_list()
-            self.sort_event_list()
+            #self.make_event_list()
+            #self.sort_event_list()
+            return True
 
         self.last_time_ran = self.cur_week_secs()
+        return False
 
     #once the scheduler is started I need to check what the first event is to run
     def determine_inital_event_index(self):
@@ -176,8 +178,14 @@ class SmartLincClient(asyncore.dispatcher):
         log_str("Received: %s" % binascii.hexlify(received).upper())
         #now I make a handler to handle the incoming messages
         self.buffer = self.event_handler.parse_mesg(binascii.hexlify(received).upper())
+        if self.writable():
+            self.handle_write()
 
     def writable(self):
+        #this clears out any temp things we have setup to to events
+        #doesn't work well if any temp events aren't carried out prior to new week.
+        if (self.sched.reset_to_new_week()):
+            self.reload_data_file()
         
         #check to see if the data file is updated and if so reload everything
         if (self.data_file_updated()):
@@ -235,6 +243,11 @@ class EventHandler():
         
         
     def parse_mesg(self,mesg):
+        #FUTURE EXPANSION this should work well here.  I add temp events through this
+        #they will run once on the time I say and then be gone when the week is refreshed
+        #need to figure out how to refresh
+
+        
         #self.scheduler.events.append(Event('X10other','Off','12:00','Mon','X10','00'))
         #self.scheduler.make_event_list()
         #self.scheduler.sort_event_list()
@@ -247,6 +260,14 @@ class EventHandler():
 
         if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
             log_str("detected stairs motion turning on light")
+            curr_time = localtime()
+            curr_hour = int(strftime("%H", curr_time ))
+            curr_min = int(strftime("%M", curr_time ))
+            time = "%s:%s" %(curr_hour,curr_min+2)
+            log_str("setting action for: %s" % time)
+            self.scheduler.events.append(Event('desklamp','Off',time,strftime("%a", curr_time ),'Insteon','00'))
+            self.scheduler.make_event_list()
+            self.scheduler.sort_event_list()
             return (self.ascii2bin("0262235C2C0F12FF"))
         else:
             return ("")
