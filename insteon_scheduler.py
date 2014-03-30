@@ -240,8 +240,14 @@ class EventHandler():
         #action => motion = 11. no motion = 13
         log_str("parsing %s" % mesg)
         event_prefix = mesg[:4]
-        event_device = DEVICES[mesg[4:10]]
-        event_destination = DEVICES[mesg[10:16]]
+        try:
+            event_device = DEVICES[mesg[4:10]]
+        except KeyError:
+            log_str("Event device not known: %s" %mesg[4:10])
+        try:
+            event_destination = DEVICES[mesg[10:16]]
+        except KeyError:
+            log_str("Event destination not known: %s" %mesg[4:10])
         event_action = mesg[18:20]
 
 if __name__ == "__main__":
