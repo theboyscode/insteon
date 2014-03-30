@@ -2,7 +2,7 @@ import asyncore
 import socket
 import binascii
 import time
-
+import threding
 import os
 
 from operator import itemgetter
@@ -175,7 +175,7 @@ class SmartLincClient(asyncore.dispatcher):
         received = self.recv(1024)
         log_str("Received: %s" % binascii.hexlify(received).upper())
         #now I make a handler to handle the incoming messages
-        self.event_handler.parse_mesg(binascii.hexlify(received).upper())
+        self.buffer = self.event_handler.parse_mesg(binascii.hexlify(received).upper())
 
     def writable(self):
         
@@ -232,7 +232,8 @@ class EventHandler():
         self.scheduler = scheduler
         log_str("Made a handler")
         log_str("number of events %i" % len(self.scheduler.events))
-
+        
+        
     def parse_mesg(self,mesg):
         #self.scheduler.events.append(Event('X10other','Off','12:00','Mon','X10','00'))
         #self.scheduler.make_event_list()
@@ -240,15 +241,21 @@ class EventHandler():
         #action => motion = 11. no motion = 13
         log_str("parsing %s" % mesg)
         event_prefix = mesg[:4]
-        try:
-            event_device = DEVICES[mesg[4:10]]
-        except KeyError:
-            log_str("Event device not known: %s" %mesg[4:10])
-        try:
-            event_destination = DEVICES[mesg[10:16]]
-        except KeyError:
-            log_str("Event destination not known: %s" %mesg[4:10])
+        event_device = mesg[4:10]
+        event_destination = mesg[10:16]
         event_action = mesg[18:20]
+
+        if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
+            log_str("detected stairs motion turning on light")
+            return (self.ascii2bin("0262235C2C0F12FF"))
+        else:
+            return ("")
+        #fiture out how to make a
+
+    def ascii2bin(self, command):
+        bytes = command.replace(' ','')
+        binary = binascii.unhexlify(bytes)
+        return(binary)
 
 if __name__ == "__main__":
 
