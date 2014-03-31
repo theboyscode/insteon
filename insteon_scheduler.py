@@ -180,19 +180,16 @@ class SmartLincClient(asyncore.dispatcher):
         self.buffer = self.event_handler.parse_mesg(binascii.hexlify(received).upper())
         if (len(self.buffer) > 0):
             self.handle_write()
-            #this maybe shouldn't be here
             self.sched.make_event_list()
             self.sched.sort_event_list()
             self.sched.next_event_index = self.sched.determine_inital_event_index()
 
 
     def writable(self):
-
-
         #this clears out any temp things we have setup to to events
         #doesn't work well if any temp events aren't carried out prior to new week.
         if (self.sched.reset_to_new_week()):
-            self.reload_data_file()
+            self.reload_data_file()#instead of doing this should pop event current -1 and set index to current - 1
         
         #check to see if the data file is updated and if so reload everything
         if (self.data_file_updated()):
@@ -268,13 +265,11 @@ class EventHandler():
         if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
             log_str("detected stairs motion turning on light")
             curr_time = localtime()
-            curr_hour = int(strftime("%H", curr_time ))
-            curr_min = int(strftime("%M", curr_time ))
-            time = "%s:%s" %(curr_hour,curr_min+2)
+            curr_hour = strftime("%H", curr_time )
+            curr_min = int(strftime("%M", curr_time )) + 2
+            time = "%s:%02i" %(curr_hour,curr_min)
             log_str("setting action for: %s" % time)
             self.scheduler.events.append(Event('desklamp','Off',time,strftime("%a", curr_time ),'Insteon','00'))
-            self.scheduler.make_event_list()
-            self.scheduler.sort_event_list()
             return (self.ascii2bin("0262235C2C0F12FF"))
         else:
             return ("")
