@@ -46,7 +46,8 @@ class Scheduler:
     #the list contains [entry id (1 through x),time to run, command]
     #the entry really isn't used and I could get rid of it
     def make_event_list(self):
-        log_str('number of event is: %i' %len(self.events))       
+        log_str('number of event is: %i' %len(self.events))
+        self.event_list = []  #have to zero this out becuase it gets remade during a triggered event
         for i in range(0,len(self.events)):
             self.event_list.append((i,self.events[i].get_command_time(),self.events[i].get_command()))
             
@@ -118,6 +119,7 @@ class Scheduler:
         #just need the times here so make a list, must be a better way to do it
         times = [x[1] for x in self.event_list]
         while (times[i] < self.cur_week_secs()):
+            log_str("time is: %s and current secods is: %i"% (times[i], self.cur_week_secs()))
             i = i + 1
             if (i >= len(self.events)):
                 log_str('i is: %i' %i)
