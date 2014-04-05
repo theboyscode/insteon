@@ -114,6 +114,7 @@ class Scheduler:
     #once the scheduler is started I need to check what the first event is to run
     def determine_inital_event_index(self):
         log_str("in determin_inital_event")
+        self.ran_last_event = False
         i = 0
         log_str(len(self.events))
         #just need the times here so make a list, must be a better way to do it
@@ -266,12 +267,10 @@ class EventHandler():
 
         if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
             log_str("detected stairs motion turning on light")
-            curr_time = localtime()
-            curr_hour = strftime("%H", curr_time )
-            curr_min = int(strftime("%M", curr_time )) + 2
-            time = "%s:%02i" %(curr_hour,curr_min)
-            log_str("setting action for: %s" % time)
-            self.scheduler.events.append(Event('desklamp','Off',time,strftime("%a", curr_time ),'Insteon','00'))
+            action_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
+            time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
+            log_str("setting action for: %s" % time_str)
+            self.scheduler.events.append(Event('desklamp','Off',time_str,action_time.strftime("%a"),'Insteon','00'))
             return (self.ascii2bin("0262235C2C0F12FF"))
         else:
             return ("")
