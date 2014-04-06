@@ -312,6 +312,8 @@ class TriggerHandler():
         event_action = mesg[18:20]
         log_str("len of triggers: %i" % len(self.triggers))
         immediate_command = ""
+        #still need to check for time
+        #still need to generate command now it is hard coded.
         for i in range(0,len(self.triggers)):
             if ((event_device == self.triggers[i].trigger) and
                (event_action == self.triggers[i].trigger_action) and
@@ -330,17 +332,6 @@ class TriggerHandler():
                                                        self.triggers[i].protocol,
                                                        self.triggers[i].level))
         return(immediate_command)
-
-##      if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
-##            log_str("detected stairs motion turning on light")
-##            action_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
-##            time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
-##            log_str("setting action for: %s" % time_str)
-##            self.scheduler.events.append(Event('desklamp','Off',time_str,action_time.strftime("%a"),'Insteon','00'))
-##            return (self.ascii2bin("0262235C2C0F12FF"))
-##        else:
-##            return ("")
- 
 
     def ascii2bin(self, command):
         bytes = command.replace(' ','')
