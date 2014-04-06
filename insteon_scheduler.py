@@ -311,13 +311,14 @@ class TriggerHandler():
         event_destination = mesg[10:16]
         event_action = mesg[18:20]
         log_str("len of triggers: %i" % len(self.triggers))
+        immediate_command = ""
         for i in range(0,len(self.triggers)):
             if ((event_device == self.triggers[i].trigger) and
                (event_action == self.triggers[i].trigger_action) and
                (event_destination == "1EB35B")):
                 if ((self.triggers[i].time_lag_minutes == 0 ) and 
                     (self.triggers[i].time_lag_hours == 0) ):
-                    return (self.ascii2bin("0262235C2C0F12FF"))
+                    immediate_command = self.ascii2bin("0262235C2C0F12FF")
                 else:
                     log_str("tigger matched")
                     action_time = datetime.datetime.now() + datetime.timedelta(minutes=self.triggers[i].time_lag_minutes)
@@ -328,7 +329,7 @@ class TriggerHandler():
                                                        action_time.strftime("%a"),
                                                        self.triggers[i].protocol,
                                                        self.triggers[i].level))
-                    return ("")
+        return(immediate_command)
 
 ##      if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
 ##            log_str("detected stairs motion turning on light")
