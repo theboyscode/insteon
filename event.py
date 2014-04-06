@@ -22,7 +22,6 @@ class Event():
         self.protocol = protocol
         log_str('self.protocol = %s' % self.protocol)
 
-
     def get_command(self):
         return self.create_command()
 
