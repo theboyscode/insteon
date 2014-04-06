@@ -10,8 +10,8 @@ class Trigger():
         self.target = DEVICES[target]
         self.action  = self.get_trigger_action(action)
         self.time_lag = time_lag
-        self.time_lag_minutes = time_lag[3:5]
-        self.time_lag_hours = time_lag[0:2]
+        self.time_lag_minutes = int(time_lag[3:5])
+        self.time_lag_hours = int(time_lag[0:2])
         self.time_min = time_min
         self.time_max = time_max
         self.level = self.percent_to_level(level)
