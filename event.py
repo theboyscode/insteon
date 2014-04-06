@@ -56,11 +56,13 @@ class Event():
                    'Off':'0F 13 FF',
                    'none':'0F',
                    'Ramp':'0F 11'}
+        
         if (self.action == 'Ramp'):
             command  = '02 62 %s %s %s' % (DEVICES[self.device],  options[self.action], self.level)
         elif (self.action == 'On'):
             command  = '02 62 %s %s' % (DEVICES[self.device],  options[self.action])
         elif (self.action == 'Off'):
+            log_str("the command is: %s" % self.action )
             command  = '02 62 %s %s' % (DEVICES[self.device],  options[self.action])
         else:
             log_str("didn't get a correction action")

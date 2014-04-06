@@ -7,7 +7,7 @@ class Trigger():
 
         self.trigger = DEVICES[trigger]
         self.trigger_action = self.get_trigger_action(trigger_action)
-        self.target = DEVICES[target]
+        self.target = target
         self.action  = action
         self.time_lag = time_lag
         self.time_lag_minutes = int(time_lag[3:5])
