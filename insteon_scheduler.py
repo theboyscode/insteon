@@ -10,14 +10,14 @@ from operator import itemgetter
 
 import csv
 from event import *
+from trigger import *
 #this is so I can post the values on git without having insteon address in it.
 #expecting values HOST, PORT, DEVICES, FILENAME, PRESSURE, CITY_NAME
 from values import *
 from log_str import *
 
-
-    
-class Scheduler:
+   
+class EventHandler:
     def __init__(self,events):
         #denotes whether I have run the last event for that week
         #if I have run the last event I won't run any more
@@ -152,17 +152,24 @@ class SmartLincClient(asyncore.dispatcher):
         #Create a list of events
         self.events = []
 
+        #Creat a list of triggers
+        self.triggers = []
+
         #timestamp when file is loaded.
-        self.data_file_timestamp = os.stat(FILENAME).st_mtime
+        self.data_file_timestamp = os.stat(EVENTS_FILENAME).st_mtime
+        self.trigger_file_timestamp = os.stat(TRIGGERS_FILENAME).st_mtime
         
         #used to read in the events,this is temp and will need to change
         self.load_events()
 
+        #used to read in the events,this is temp and will need to change
+        self.load_triggers()
+
         #now I start scheduling the events
-        self.sched = Scheduler(self.events)
+        self.sched = EventHandler(self.events)
 
         #this seems shady
-        self.event_handler = EventHandler(self.sched)
+        self.trigger_handler = TriggerHandler(self.sched,self.triggers)
 
         #upon initial running
         asyncore.dispatcher.__init__(self)
@@ -180,13 +187,12 @@ class SmartLincClient(asyncore.dispatcher):
         received = self.recv(1024)
         log_str("Received: %s" % binascii.hexlify(received).upper())
         #now I make a handler to handle the incoming messages
-        self.buffer = self.event_handler.parse_mesg(binascii.hexlify(received).upper())
+        self.buffer = self.trigger_handler.parse_mesg(binascii.hexlify(received).upper())
         if (len(self.buffer) > 0):
             self.handle_write()
             self.sched.make_event_list()
             self.sched.sort_event_list()
             self.sched.next_event_index = self.sched.determine_inital_event_index()
-
 
     def writable(self):
         #this clears out any temp things we have setup to to events
@@ -197,21 +203,35 @@ class SmartLincClient(asyncore.dispatcher):
         #check to see if the data file is updated and if so reload everything
         if (self.data_file_updated()):
             self.reload_data_file()    
-        
+
+        #check to see if the triggers file is updated and if so reload triggers
+        if (self.trigger_file_updated()):
+            self.reload_trigger_file()        
+
+        #check if there is an event to run and send it to the buffer
         if self.sched.event_to_run():
             self.buffer = self.sched.get_next_event_command()
         return (len(self.buffer) > 0)
 
     def data_file_updated(self):
-        return (self.data_file_timestamp < os.stat(FILENAME).st_mtime)
+        return (self.data_file_timestamp < os.stat(EVENTS_FILENAME).st_mtime)
+
+    def trigger_file_updated(self):
+        return (self.trigger_file_timestamp < os.stat(TRIGGERS_FILENAME).st_mtime)
 
     def reload_data_file(self):
         #timestamp when file is loaded.
-        self.data_file_timestamp = os.stat(FILENAME).st_mtime
+        self.data_file_timestamp = os.stat(EVENTS_FILENAME).st_mtime
         #used to read in the events,this is temp and will need to change
         self.load_events()
         #now I start scheduling the events
-        self.sched = Scheduler(self.events)
+        self.sched = EventHandler(self.events)
+
+    def reload_trigger_file(self):
+        #timestamp when file is loaded.
+        self.trigger_file_timestamp = os.stat(TIGGERS_FILENAME).st_mtime
+        #used to read in the events,this is temp and will need to change
+        self.load_triggers()
 
     def handle_write(self):
         #convert things back to hex to make it easier to work with
@@ -235,26 +255,52 @@ class SmartLincClient(asyncore.dispatcher):
         #also filters all the lines that start with #
         #make sure events is empty
         self.events = []
-        fp  = file(FILENAME)
+        fp  = file(EVENTS_FILENAME)
         input_file = csv.DictReader(filter(lambda row: row[0]!='#',fp))
         for row in input_file:
             self.events.append(Event(row["device"],row["action"],row["time"],row["day of week"],row["protocol"],row["level"]))
         fp.close()
+        
+    def load_triggers(self):
+        #trigger device, target device, action, time lag, time window min, time window max, protocol
+        #example: motion_stairs, closet, On, 18:00, 2300, 0500, X10
+        #also filters all the lines that start with #
+        #make sure events is empty
+        self.triggers = []
+        fp  = file(TRIGGERS_FILENAME)
+        input_file = csv.DictReader(filter(lambda row: row[0]!='#',fp))
+        for row in input_file:
+            self.triggers.append(Trigger(row["trigger"],row["trigger action"],row["target"],row["action"],
+                                     row["time lag"],row["time min"],row["time max"],
+                                     row["protocol"], row["level"]))
+            log_str("trig: %s, targ: %s action: %s" % (row["trigger"],row["target"],row["action"]))
+        fp.close()
+
 
 #knows how to handle a received command
-class EventHandler():
-    def __init__(self,scheduler):
+class TriggerHandler():
+    def __init__(self,scheduler,triggers):
         self.scheduler = scheduler
+        self.triggers = triggers
         log_str("Made a handler")
         log_str("number of events %i" % len(self.scheduler.events))
+        #self.make_trigger_list()
         
-        
+##    #takes the events and saves a list of tuples which can be easily sorted
+##    #the list contains [entry id (1 through x),time to run, command]
+##    #the entry really isn't used and I could get rid of it
+##    def make_trigger_list(self):
+##        log_str('number of triggers is: %i' %len(self.triggers))
+##        self.trigger_list = []  #have to zero this out becuase it gets remade during a triggered event
+##        for i in range(0,len(self.triggers)):
+##            self.trigger_list.append((i,self.triggers[i].target,self.triggers[i].get_command()))
+
+    
     def parse_mesg(self,mesg):
         #FUTURE EXPANSION this should work well here.  I add temp events through this
         #they will run once on the time I say and then be gone when the week is refreshed
         #need to figure out how to refresh
 
-        
         #self.scheduler.events.append(Event('X10other','Off','12:00','Mon','X10','00'))
         #self.scheduler.make_event_list()
         #self.scheduler.sort_event_list()
@@ -264,17 +310,36 @@ class EventHandler():
         event_device = mesg[4:10]
         event_destination = mesg[10:16]
         event_action = mesg[18:20]
+        log_str("len of triggers: %i" % len(self.triggers))
+        for i in range(0,len(self.triggers)):
+            if ((event_device == self.triggers[i].trigger) and
+               (event_action == self.triggers[i].trigger_action) and
+               (event_destination == "1EB35B")):
+                if ((self.triggers[i].time_lag_minutes == 0 ) and 
+                    (self.triggers[i].time_lag_hours == 0) ):
+                    return (self.ascii2bin("0262235C2C0F12FF"))
+                else:
+                    log_str("tigger matched")
+                    action_time = datetime.datetime.now() + datetime.timedelta(minutes=self.triggers[i].time_lag_minutes)
+                    time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
+                    self.scheduler.events.append(Event(self.triggers[i].target,
+                                                       self.triggers[i].action,
+                                                       time_str,
+                                                       action_time.strftime("%a"),
+                                                       self.triggers[i].protocol,
+                                                       self.triggers[i].level))
+                    return ("")
 
-        if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
-            log_str("detected stairs motion turning on light")
-            action_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
-            time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
-            log_str("setting action for: %s" % time_str)
-            self.scheduler.events.append(Event('desklamp','Off',time_str,action_time.strftime("%a"),'Insteon','00'))
-            return (self.ascii2bin("0262235C2C0F12FF"))
-        else:
-            return ("")
-        #fiture out how to make a
+##      if (event_device == "2771F8") and (event_action == "11") and (event_destination == "1EB35B"):
+##            log_str("detected stairs motion turning on light")
+##            action_time = datetime.datetime.now() + datetime.timedelta(minutes=2)
+##            time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
+##            log_str("setting action for: %s" % time_str)
+##            self.scheduler.events.append(Event('desklamp','Off',time_str,action_time.strftime("%a"),'Insteon','00'))
+##            return (self.ascii2bin("0262235C2C0F12FF"))
+##        else:
+##            return ("")
+ 
 
     def ascii2bin(self, command):
         bytes = command.replace(' ','')

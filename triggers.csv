@@ -1,0 +1,6 @@
+#this is a comment
+#and this is a comment
+trigger,trigger action,target,action,time lag,time min,time max,protocol,level
+motion_stairs,On,desklamp,On,00:00,00:00,23:59,Insteon,00
+motion_stairs,On,desklamp,Off,00:02,00:00,23:59,Insteon,00
+
