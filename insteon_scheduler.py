@@ -229,7 +229,7 @@ class SmartLincClient(asyncore.dispatcher):
 
     def reload_trigger_file(self):
         #timestamp when file is loaded.
-        self.trigger_file_timestamp = os.stat(TIGGERS_FILENAME).st_mtime
+        self.trigger_file_timestamp = os.stat(TRIGGERS_FILENAME).st_mtime
         #used to read in the events,this is temp and will need to change
         self.load_triggers()
 
@@ -286,16 +286,6 @@ class TriggerHandler():
         log_str("number of events %i" % len(self.scheduler.events))
         #self.make_trigger_list()
         
-##    #takes the events and saves a list of tuples which can be easily sorted
-##    #the list contains [entry id (1 through x),time to run, command]
-##    #the entry really isn't used and I could get rid of it
-##    def make_trigger_list(self):
-##        log_str('number of triggers is: %i' %len(self.triggers))
-##        self.trigger_list = []  #have to zero this out becuase it gets remade during a triggered event
-##        for i in range(0,len(self.triggers)):
-##            self.trigger_list.append((i,self.triggers[i].target,self.triggers[i].get_command()))
-
-    
     def parse_mesg(self,mesg):
         #FUTURE EXPANSION this should work well here.  I add temp events through this
         #they will run once on the time I say and then be gone when the week is refreshed
@@ -314,23 +304,28 @@ class TriggerHandler():
         immediate_command = ""
         #still need to check for time
         #still need to generate command now it is hard coded.
+        now = datetime.datetime.now()
+        now_in_minutes = int(now.strftime("%H"))+int(now.strftime("%M"))*60
         for i in range(0,len(self.triggers)):
-            if ((event_device == self.triggers[i].trigger) and
-               (event_action == self.triggers[i].trigger_action) and
-               (event_destination == "1EB35B")):
-                if ((self.triggers[i].time_lag_minutes == 0 ) and 
-                    (self.triggers[i].time_lag_hours == 0) ):
-                    immediate_command = self.ascii2bin("0262235C2C0F12FF")
-                else:
-                    log_str("tigger matched")
-                    action_time = datetime.datetime.now() + datetime.timedelta(minutes=self.triggers[i].time_lag_minutes)
-                    time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
-                    self.scheduler.events.append(Event(self.triggers[i].target,
-                                                       self.triggers[i].action,
-                                                       time_str,
-                                                       action_time.strftime("%a"),
-                                                       self.triggers[i].protocol,
-                                                       self.triggers[i].level))
+            if ((self.triggers[i].time_min_minutes < now_in_minutes) and
+                (self.triggers[i].time_max_minutes > now_in_minutes )):
+                if ((event_device == self.triggers[i].trigger) and
+                   (event_action == self.triggers[i].trigger_action) and
+                   (event_destination == "1EB35B")):
+                    if ((self.triggers[i].time_lag_minutes == 0 ) and 
+                        (self.triggers[i].time_lag_hours == 0) ):
+                        immediate_command = self.triggers[i].get_command()
+                    else:
+                        log_str("tigger matched")
+                        action_time = now + datetime.timedelta(minutes=self.triggers[i].time_lag_minutes)
+                        time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
+                        log_str("level: %s"%self.triggers[i].level)
+                        self.scheduler.events.append(Event(self.triggers[i].target,
+                                                           self.triggers[i].action,
+                                                           time_str,
+                                                           action_time.strftime("%a"),
+                                                           self.triggers[i].protocol,
+                                                           self.triggers[i].percent))
         return(immediate_command)
 
     def ascii2bin(self, command):

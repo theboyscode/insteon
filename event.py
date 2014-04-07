@@ -30,7 +30,7 @@ class Event():
         sun = CITY.sun(date=datetime.date.today() + datetime.timedelta(days=self.day_of_week_num), local=True)
         if ((self.time == 'dawn') or (self.time == 'dusk')):
             #on below line need to account for the day offset
-            time = str('%i:%i' % (sun[self.time].hour , sun[self.time].minute))
+            time = str('%02d:%02d' % (sun[self.time].hour , sun[self.time].minute))
             log_str('%s is %s' % (self.time, time))
         else:
             time = self.time

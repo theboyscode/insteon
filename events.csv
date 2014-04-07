@@ -1,40 +1,30 @@
 #this is a comment
 #and this is a comment
 device,action,time,day of week,protocol,level
-closet,Ramp,6:14,Mon,Insteon,15
-closet,Ramp,6:15,Mon,Insteon,30
-closet,Ramp,6:16,Mon,Insteon,50
-closet,Ramp,6:17,Mon,Insteon,70
-closet,Ramp,6:18,Mon,Insteon,90
-closet,Ramp,6:19,Mon,Insteon,100
-closet,Ramp,6:14,Tue,Insteon,10
-closet,Ramp,6:15,Tue,Insteon,30
-closet,Ramp,6:16,Tue,Insteon,50
-closet,Ramp,6:17,Tue,Insteon,70
-closet,Ramp,6:18,Tue,Insteon,90
-closet,Ramp,6:19,Tue,Insteon,100
-closet,Ramp,6:14,Wed,Insteon,10
-closet,Ramp,6:15,Wed,Insteon,30
-closet,Ramp,6:16,Wed,Insteon,50
-closet,Ramp,6:17,Wed,Insteon,70
-closet,Ramp,6:18,Wed,Insteon,90
-closet,Ramp,6:19,Wed,Insteon,100
-closet,Ramp,6:14,Thu,Insteon,10
-closet,Ramp,6:15,Thu,Insteon,30
-closet,Ramp,6:16,Thu,Insteon,50
-closet,Ramp,6:17,Thu,Insteon,70
-closet,Ramp,6:18,Thu,Insteon,90
-closet,Ramp,6:19,Thu,Insteon,100
-closet,Ramp,6:14,Fri,Insteon,10
-closet,Ramp,6:15,Fri,Insteon,30
-closet,Ramp,6:16,Fri,Insteon,50
-closet,Ramp,6:17,Fri,Insteon,70
-closet,Ramp,6:18,Fri,Insteon,90
-closet,Ramp,6:19,Fri,Insteon,100
-closet,Ramp,7:14,Sat,Insteon,10
-closet,Ramp,7:15,Sat,Insteon,30
-closet,Ramp,7:16,Sat,Insteon,50
-closet,Ramp,7:17,Sat,Insteon,70
-closet,Ramp,7:18,Sat,Insteon,90
-closet,Ramp,7:19,Sat,Insteon,100
-X10other,On,21:36,Sun,X10,0
+##Closet 
+#Closet on
+closet,On,6:19,Mon,Insteon,0
+closet,On,6:19,Tue,Insteon,0
+closet,On,6:19,Wed,Insteon,0
+closet,On,6:19,Thu,Insteon,0
+closet,On,6:19,Fri,Insteon,0
+closet,On,7:19,Sat,Insteon,0
+closet,On,7:19,Sun,Insteon,0
+##Porch
+#Porch off
+X10Porch,Off,dawn,Sun,X10,0
+X10Porch,Off,dawn,Mon,X10,0
+X10Porch,Off,dawn,Tue,X10,0
+X10Porch,Off,dawn,Wed,X10,0
+X10Porch,Off,dawn,Thu,X10,0
+X10Porch,Off,dawn,Fri,X10,0
+X10Porch,Off,dawn,Sat,X10,0
+#Porch on
+X10Porch,On,dusk,Sun,X10,0
+X10Porch,On,dusk,Mon,X10,0
+X10Porch,On,dusk,Tue,X10,0
+X10Porch,On,dusk,Wed,X10,0
+X10Porch,On,dusk,Thu,X10,0
+X10Porch,On,dusk,Fri,X10,0
+X10Porch,On,dusk,Sat,X10,0
+

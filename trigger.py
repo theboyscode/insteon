@@ -3,7 +3,7 @@ from values import *
 import binascii
 
 class Trigger():
-    def __init__(self, trigger, trigger_action, target, action, time_lag, time_min, time_max, protocol, level):
+    def __init__(self, trigger, trigger_action, target, action, time_lag, time_min, time_max, protocol, percent):
 
         self.trigger = DEVICES[trigger]
         self.trigger_action = self.get_trigger_action(trigger_action)
@@ -14,7 +14,10 @@ class Trigger():
         self.time_lag_hours = int(time_lag[0:2])
         self.time_min = time_min
         self.time_max = time_max
-        self.level = self.percent_to_level(level)
+        self.time_min_minutes = int(time_min[0:2])+int(time_min[3:5])*60
+        self.time_max_minutes = int(time_max[0:2])+int(time_max[3:5])*60
+        self.level = self.percent_to_level(percent)
+        self.percent = percent
         self.protocol = protocol
         log_str('trigger.self.action = %s' % self.action)
 
@@ -48,11 +51,11 @@ class Trigger():
         #need to figure out how to get this the address
 
         if (self.action == 'Ramp'):
-            command  = '02 62 %s %s %s' % (self.target,  options[self.action], self.level)
+            command  = '02 62 %s %s %s' % (DEVICES[self.target],  options[self.action], self.level)
         elif (self.action == 'On'):
-            command  = '02 62 %s %s' % (self.target,  options[self.action])
+            command  = '02 62 %s %s' % (DEVICES[self.target],  options[self.action])
         elif (self.action == 'Off'):
-            command  = '02 62 %s %s' % (self.target,  options[self.action])
+            command  = '02 62 %s %s' % (DEVICES[self.target],  options[self.action])
         else:
             log_str("didn't get a correction action")
             
