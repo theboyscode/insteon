@@ -210,7 +210,7 @@ class SmartLincClient(asyncore.dispatcher):
 
         #check if there is an event to run and send it to the buffer
         if self.sched.event_to_run():
-            self.buffer = self.sched.get_next_event_command()
+            self.buffer = self.buffer + self.sched.get_next_event_command()
         return (len(self.buffer) > 0)
 
     def data_file_updated(self):
@@ -236,19 +236,18 @@ class SmartLincClient(asyncore.dispatcher):
     def handle_write(self):
         #convert things back to hex to make it easier to work with
         hexbuffer = binascii.hexlify(self.buffer)
-
         #this splits up the x10 stupid command and makes
         #it so the handle_write sends the first half, pauses
         #and then sends the second half and implements the pause.
         if (( hexbuffer.find("0263") == 0 ) & (len(hexbuffer) == 16)):
             sent = self.send(binascii.unhexlify(hexbuffer[:8]))
-            time.sleep(3) #this pause is needed in between the commands
+            time.sleep(1) #this pause is needed in between the commands
+            sent = sent + self.send(binascii.unhexlify(hexbuffer[8:]))
         else:
             sent = self.send(self.buffer)
-                
-        log_str("Sent: %s" %self.buffer)
+
         self.buffer = self.buffer[sent:]
-   
+        
     def load_events(self):
         #device,action,time,day of week,protocol,level
         #example: Hall,On,18:00,Mon,X10
