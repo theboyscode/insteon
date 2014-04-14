@@ -68,12 +68,11 @@ class EventHandler:
             #break apart the parts list
             #this used to be outside the if -- MAKE SURE IT WORKS
             [next_num,next_time,next_command] = self.event_list[self.next_event_index]
-            log_str("next: %i" %next_time)
-            log_str("time: %i" %self.cur_week_secs())   
+            ##log_str("n: %i" %next_time)
+            log_str("t: %i" %self.cur_week_secs())   
 
             #if I haven't run the last event I check to see if there are more events to run
             if (next_time < self.cur_week_secs()):
-                log_str("This is the comparison %r" %(next_time < self.cur_week_secs()))
                 log_str("There is a command to run")
                 #if there is any event to run I return true and then get_next_event_command is run
                 return True
@@ -91,7 +90,7 @@ class EventHandler:
             self.ran_last_event = True
         else:
             self.ran_last_event = False
-        log_str("just got the next command the index is %i" %cur_index)
+        ##log_str("just got the next command the index is %i" %cur_index)
 
         #When I run this need
         #break apart the parts list
@@ -116,18 +115,18 @@ class EventHandler:
         log_str("in determin_inital_event")
         self.ran_last_event = False
         i = 0
-        log_str(len(self.events))
+        ##log_str(len(self.events))
         #just need the times here so make a list, must be a better way to do it
         times = [x[1] for x in self.event_list]
         while (times[i] < self.cur_week_secs()):
-            log_str("time is: %s and current secods is: %i"% (times[i], self.cur_week_secs()))
+            ##log_str("time is: %s and current secods is: %i"% (times[i], self.cur_week_secs()))
             i = i + 1
             if (i >= len(self.events)):
                 log_str('i is: %i' %i)
                 log_str('No events to schedule')
                 self.ran_last_event = True
                 break
-        log_str("Next event to run is event %i" %i)
+        ##log_str("Next event to run is event %i" %i)
         return i
         
     #gets the curr week seconds from the OS
@@ -272,7 +271,7 @@ class SmartLincClient(asyncore.dispatcher):
             self.triggers.append(Trigger(row["trigger"],row["trigger action"],row["target"],row["action"],
                                      row["time lag"],row["time min"],row["time max"],
                                      row["protocol"], row["level"]))
-            log_str("trig: %s, targ: %s action: %s" % (row["trigger"],row["target"],row["action"]))
+            ##log_str("trig: %s, targ: %s action: %s" % (row["trigger"],row["target"],row["action"]))
         fp.close()
 
 
@@ -281,8 +280,8 @@ class TriggerHandler():
     def __init__(self,scheduler,triggers):
         self.scheduler = scheduler
         self.triggers = triggers
-        log_str("Made a handler")
-        log_str("number of events %i" % len(self.scheduler.events))
+        ##log_str("Made a handler")
+        ##log_str("number of events %i" % len(self.scheduler.events))
         #self.make_trigger_list()
         
     def parse_mesg(self,mesg):
@@ -299,7 +298,7 @@ class TriggerHandler():
         event_device = mesg[4:10]
         event_destination = mesg[10:16]
         event_action = mesg[18:20]
-        log_str("len of triggers: %i" % len(self.triggers))
+        #log_str("len of triggers: %i" % len(self.triggers))
         immediate_command = ""
         #still need to check for time
         #still need to generate command now it is hard coded.
@@ -315,10 +314,10 @@ class TriggerHandler():
                         (self.triggers[i].time_lag_hours == 0) ):
                         immediate_command = self.triggers[i].get_command()
                     else:
-                        log_str("tigger matched")
+                        ##log_str("tigger matched")
                         action_time = now + datetime.timedelta(minutes=self.triggers[i].time_lag_minutes)
                         time_str = "%s:%s" %(action_time.strftime("%H") ,action_time.strftime("%M") )
-                        log_str("level: %s"%self.triggers[i].level)
+                        ##log_str("level: %s"%self.triggers[i].level)
                         self.scheduler.events.append(Event(self.triggers[i].target,
                                                            self.triggers[i].action,
                                                            time_str,

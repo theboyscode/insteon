@@ -3,13 +3,42 @@
 device,action,time,day of week,protocol,level
 ##Closet 
 #Closet on
-closet,On,6:19,Mon,Insteon,0
+closet,On,6:18,Mon,Insteon,0
 closet,On,6:19,Tue,Insteon,0
-closet,On,6:19,Wed,Insteon,0
-closet,On,6:19,Thu,Insteon,0
-closet,On,6:19,Fri,Insteon,0
+closet,On,6:21,Wed,Insteon,0
+closet,On,6:17,Thu,Insteon,0
+closet,On,6:18,Fri,Insteon,0
 closet,On,7:19,Sat,Insteon,0
 closet,On,7:19,Sun,Insteon,0
+#Closet off
+closet,Off,7:14,Mon,Insteon,0
+closet,Off,7:02,Tue,Insteon,0
+closet,Off,6:55,Wed,Insteon,0
+closet,Off,6:57,Thu,Insteon,0
+closet,Off,6:32,Fri,Insteon,0
+closet,Off,7:58,Sat,Insteon,0
+closet,Off,7:59,Sun,Insteon,0
+#Closet Ons and Offs
+closet,Off,6:21,Mon,Insteon,0
+closet,On,6:23,Mon,Insteon,0
+#
+closet,Off,6:50,Tue,Insteon,0
+closet,On,7:53,Tue,Insteon,0
+#
+closet,Off,6:37,Wed,Insteon,0
+closet,On,7:40,Wed,Insteon,0
+#
+closet,Off,6:36,Thu,Insteon,0
+closet,On,6:41,Thu,Insteon,0
+#
+closet,Off,6:32,Fri,Insteon,0
+closet,On,6:38,Fri,Insteon,0
+#
+closet,Off,7:23,Sat,Insteon,0
+closet,On,7:25,Sat,Insteon,0
+#
+closet,Off,7:27,Sun,Insteon,0
+closet,On,7:35,Sun,Insteon,0
 ##Porch
 #Porch off
 X10Porch,Off,dawn,Sun,X10,0
@@ -27,4 +56,58 @@ X10Porch,On,dusk,Wed,X10,0
 X10Porch,On,dusk,Thu,X10,0
 X10Porch,On,dusk,Fri,X10,0
 X10Porch,On,dusk,Sat,X10,0
-
+##Dining
+#Dining On
+X10Dining,On,19:59,Sun,X10,0
+X10Dining,On,20:23,Mon,X10,0
+X10Dining,On,20:59,Tue,X10,0
+X10Dining,On,20:17,Wed,X10,0
+X10Dining,On,19:30,Thu,X10,0
+X10Dining,On,19:57,Fri,X10,0
+X10Dining,On,19:42,Sat,X10,0
+#Dining Off
+X10Dining,Off,22:10,Sun,X10,0
+X10Dining,Off,22:24,Mon,X10,0
+X10Dining,Off,21:30,Tue,X10,0
+X10Dining,Off,21:37,Wed,X10,0
+X10Dining,Off,21:22,Thu,X10,0
+X10Dining,Off,22:54,Fri,X10,0
+X10Dining,Off,22:17,Sat,X10,0
+##X10Hallway
+#X10Hallway On
+X10Hallway,On,18:42,Sun,X10,0
+X10Hallway,On,18:38,Mon,X10,0
+X10Hallway,On,18:47,Tue,X10,0
+X10Hallway,On,18:21,Wed,X10,0
+X10Hallway,On,18:17,Thu,X10,0
+X10Hallway,On,18:59,Fri,X10,0
+X10Hallway,On,18:42,Sat,X10,0
+#X10Hallway Off
+X10Hallway,Off,22:11,Sun,X10,0
+X10Hallway,Off,22:27,Mon,X10,0
+X10Hallway,Off,21:15,Tue,X10,0
+X10Hallway,Off,21:02,Wed,X10,0
+X10Hallway,Off,21:01,Thu,X10,0
+X10Hallway,Off,22:13,Fri,X10,0
+X10Hallway,Off,22:17,Sat,X10,0
+#Closet Ons and Offs
+X10Hallway,Off,19:21,Mon,X10,0
+X10Hallway,On,19:23,Mon,X10,0
+#
+X10Hallway,Off,19:50,Tue,X10,0
+X10Hallway,On,19:53,Tue,X10,0
+#
+X10Hallway,Off,19:37,Wed,X10,0
+X10Hallway,On,19:40,Wed,X10,0
+#
+X10Hallway,Off,19:36,Thu,X10,0
+X10Hallway,On,19:41,Thu,X10,0
+#
+X10Hallway,Off,19:17,Fri,X10,0
+X10Hallway,On,19:19,Fri,X10,0
+#
+X10Hallway,Off,19:23,Sat,X10,0
+X10Hallway,On,19:25,Sat,X10,0
+#
+X10Hallway,Off,19:27,Sun,X10,0
+X10Hallway,On,19:35,Sun,X10,0

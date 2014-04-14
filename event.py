@@ -18,9 +18,9 @@ class Event():
         self.day_of_week = day_of_week
         self.level = self.percent_to_level(percent)
         self.day_of_week_num = self.day_of_week2num(self.day_of_week)
-        log_str('day of week = %s' % (self.day_of_week))
+        ##log_str('day of week = %s' % (self.day_of_week))
         self.protocol = protocol
-        log_str('self.protocol = %s' % self.protocol)
+        ##log_str('self.protocol = %s' % self.protocol)
 
     def get_command(self):
         return self.create_command()
@@ -31,7 +31,7 @@ class Event():
         if ((self.time == 'dawn') or (self.time == 'dusk')):
             #on below line need to account for the day offset
             time = str('%02d:%02d' % (sun[self.time].hour , sun[self.time].minute))
-            log_str('%s is %s' % (self.time, time))
+            ##log_str('%s is %s' % (self.time, time))
         else:
             time = self.time
         return self.event_time_to_week_secs(self.day_of_week_num,time)
@@ -62,12 +62,12 @@ class Event():
         elif (self.action == 'On'):
             command  = '02 62 %s %s' % (DEVICES[self.device],  options[self.action])
         elif (self.action == 'Off'):
-            log_str("the command is: %s" % self.action )
+            ##log_str("the command is: %s" % self.action )
             command  = '02 62 %s %s' % (DEVICES[self.device],  options[self.action])
         else:
             log_str("didn't get a correction action")
             
-        log_str("Created Command: %s" % command)
+        ##log_str("Created Command: %s" % command)
         
         command = self.ascii2bin(command)
         return command
@@ -80,7 +80,7 @@ class Event():
         house = '6' #"A" house code
         command  = '02 63 %s %s' % (house, DEVICES[self.device])
         command1 = '02 63 %s %s' % (house, options[self.action])
-        log_str("Created X10 Command: %s" % command + command1)
+        ##log_str("Created X10 Command: %s" % command + command1)
         command = self.ascii2bin(command + command1)
         return command
 
