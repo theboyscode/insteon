@@ -3,7 +3,10 @@ To get Xmimg to work.  With the expection to set the display number to 1:
 http://simonthepiman.com/2-10-how_to_view_my_pi_console_on_a_windows_PC.php
 
 To make it so if would run and restart automatically did the following:
-Did apt-get install daemontools-run daemontools
+ 
+sudo apt-get install daemontools-run 
+sudo apt-get install daemontools
+
 Then made the following directory:
 /etc/service/insteon
 with the file name "run" with the following permissions:
@@ -30,4 +33,7 @@ sudo apt-get install python-pip
 
 create  global_values.py <need to make a generic one to include in github>
 
+sudo pip install astral
+sudo pip install pytz
+sudo pip install datetime <maybe not needed>
 
