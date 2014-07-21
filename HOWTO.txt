@@ -28,6 +28,6 @@ https://help.github.com/articles/create-a-repo
 sudo apt-get install python-dev
 sudo apt-get install python-pip
 
-
+create  global_values.py <need to make a generic one to include in github>
 
 
